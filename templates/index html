@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        EduGenie - AI Learning Assistant
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', path='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+<main class="container">
+
+    <header class="hero">
+
+        <div>
+
+            <p class="eyebrow">
+                AI LEARNING ASSISTANT
+            </p>
+
+            <h1>
+                EduGenie
+            </h1>
+
+            <p>
+                Ask questions, understand concepts,
+                generate quizzes, summarize text,
+                and build learning paths.
+            </p>
+
+        </div>
+
+
+        <span
+            id="status"
+            class="status"
+        >
+            Checking service...
+        </span>
+
+    </header>
+
+
+    <section class="card">
+
+        <label for="task">
+            Choose a task
+        </label>
+
+
+        <select id="task">
+
+            <option value="qa">
+                Question & Answer
+            </option>
+
+            <option value="explain">
+                Explain a Concept
+            </option>
+
+            <option value="quiz">
+                Generate Quiz
+            </option>
+
+            <option value="summarize">
+                Summarize
+            </option>
+
+            <option value="learn">
+                Learning Path
+            </option>
+
+        </select>
+
+
+        <label for="inputText">
+
+            Question, topic, or passage
+
+        </label>
+
+
+        <textarea
+            id="inputText"
+            rows="10"
+            placeholder="Example: Which is the largest ocean?"
+        ></textarea>
+
+
+        <div
+            id="quizOptions"
+            class="quiz-options hidden"
+        >
+
+            <label for="numQuestions">
+
+                Number of Questions
+
+            </label>
+
+            <input
+                id="numQuestions"
+                type="number"
+                min="1"
+                max="15"
+                value="5"
+            >
+
+        </div>
+
+
+        <button id="submitBtn">
+
+            Generate
+
+        </button>
+
+    </section>
+
+
+    <section
+        id="resultCard"
+        class="card result-card hidden"
+    >
+
+        <div class="result-heading">
+
+            <h2>
+                Result
+            </h2>
+
+            <button
+                id="copyBtn"
+                class="secondary"
+            >
+                Copy
+            </button>
+
+        </div>
+
+
+        <div id="result"></div>
+
+    </section>
+
+
+    <p class="footer">
+
+        EduGenie • FastAPI • Google Gemini •
+        LaMini-Flan-T5
+
+    </p>
+
+</main>
+
+
+<script
+    src="{{ url_for('static', path='app.js') }}"
+></script>
+
+</body>
+
+</html>

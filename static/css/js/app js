@@ -1,0 +1,352 @@
+ const task =
+    document.getElementById("task");
+
+const inputText =
+    document.getElementById("inputText");
+
+const numQuestions =
+    document.getElementById("numQuestions");
+
+const quizOptions =
+    document.getElementById("quizOptions");
+
+const submitBtn =
+    document.getElementById("submitBtn");
+
+const resultCard =
+    document.getElementById("resultCard");
+
+const result =
+    document.getElementById("result");
+
+const copyBtn =
+    document.getElementById("copyBtn");
+
+const status =
+    document.getElementById("status");
+
+
+task.addEventListener(
+    "change",
+    () => {
+
+        quizOptions.classList.toggle(
+            "hidden",
+            task.value !== "quiz"
+        );
+
+
+        const placeholders = {
+
+            qa:
+                "Example: Which is the largest ocean?",
+
+            explain:
+                "Example: Explain the Pythagoras theorem.",
+
+            quiz:
+                "Example: Photosynthesis",
+
+            summarize:
+                "Paste the educational passage to summarize.",
+
+            learn:
+                "Example: SQL for a beginner"
+        };
+
+
+        inputText.placeholder =
+            placeholders[task.value];
+
+    }
+);
+
+
+async function checkHealth() {
+
+    try {
+
+        const response =
+            await fetch("/health");
+
+
+        const data =
+            await response.json();
+
+
+        if (data.gemini_configured) {
+
+            status.textContent =
+                `Ready • ${data.gemini_model}`;
+
+        } else {
+
+            status.textContent =
+                "Gemini API key not configured";
+
+        }
+
+    } catch {
+
+        status.textContent =
+            "Service unavailable";
+
+    }
+}
+
+
+function escapeHtml(value) {
+
+    return String(value)
+
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+}
+
+
+function renderQuiz(data) {
+
+    return data.questions
+
+        .map(
+            (question, index) => `
+
+                <article
+                    class="quiz-question"
+                >
+
+                    <strong>
+
+                        ${index + 1}.
+                        ${escapeHtml(
+                            question.question
+                        )}
+
+                    </strong>
+
+
+                    <ol
+                        class="quiz-options-list"
+                    >
+
+                        ${
+                            question.options
+                                .map(
+                                    option =>
+                                        `<li>
+                                            ${escapeHtml(option)}
+                                        </li>`
+                                )
+                                .join("")
+                        }
+
+                    </ol>
+
+
+                    <div class="correct">
+
+                        Correct answer:
+                        ${escapeHtml(
+                            question.correct_answer
+                        )}
+
+                    </div>
+
+                </article>
+            `
+        )
+        .join("");
+}
+
+
+async function runTask() {
+
+    const text =
+        inputText.value.trim();
+
+
+    if (text.length < 2) {
+
+        resultCard.classList.remove(
+            "hidden"
+        );
+
+        result.textContent =
+            "Please enter at least two characters.";
+
+        return;
+    }
+
+
+    const endpoints = {
+
+        qa: "/qa",
+
+        explain: "/explain",
+
+        quiz: "/quiz",
+
+        summarize: "/summarize",
+
+        learn:
+            "/learn/recommendations"
+
+    };
+
+
+    const body =
+        task.value === "quiz"
+
+            ? {
+                text: text,
+                num_questions:
+                    Number(
+                        numQuestions.value
+                    )
+            }
+
+            : {
+                text: text
+            };
+
+
+    submitBtn.disabled = true;
+
+    submitBtn.textContent =
+        "Generating...";
+
+
+    resultCard.classList.remove(
+        "hidden"
+    );
+
+
+    result.textContent =
+        "Working...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                endpoints[task.value],
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(body)
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                "Request failed."
+            );
+
+        }
+
+
+        if (task.value === "quiz") {
+
+            result.innerHTML =
+                renderQuiz(data);
+
+        } else {
+
+            result.innerHTML =
+                `<div>
+                    ${escapeHtml(
+                        data.result
+                    ).replaceAll(
+                        "\n",
+                        "<br>"
+                    )}
+                </div>`;
+
+        }
+
+    } catch (error) {
+
+        result.textContent =
+            error.message;
+
+    } finally {
+
+        submitBtn.disabled =
+            false;
+
+        submitBtn.textContent =
+            "Generate";
+    }
+}
+
+
+submitBtn.addEventListener(
+    "click",
+    runTask
+);
+
+
+copyBtn.addEventListener(
+    "click",
+    async () => {
+
+        await navigator.clipboard.writeText(
+            result.innerText
+        );
+
+
+        copyBtn.textContent =
+            "Copied";
+
+
+        setTimeout(
+            () => {
+
+                copyBtn.textContent =
+                    "Copy";
+
+            },
+            1200
+        );
+
+    }
+);
+
+
+checkHealth();
